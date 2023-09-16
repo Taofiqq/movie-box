@@ -1,11 +1,38 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
+import Head from "next/head";
+import Image from "next/image";
+import { Inter } from "next/font/google";
+import styles from "@/styles/Home.module.css";
+import axios from "axios";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
-export default function Home() {
+const APIKEY =
+  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiMzdkYmRhNTNkMDFmYTAzZjgwZmUxNWU4OTNjOThhMiIsInN1YiI6IjY1MDVmMmYxNWFhZGM0MDEzYmJlYmE5NyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.AfxhPcPfgC8DyBJIsxAOrDGoz0vZUW26oDLLg8MZTWI";
+const baseUrl = "https://api.themoviedb.org/3/discover/movie";
+
+const fetchMovieData = async () => {
+  try {
+    const res = await axios.get(baseUrl, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${APIKEY}`,
+      },
+    });
+    return res.data.results;
+  } catch (error) {
+    console.log("Error in fetching data");
+  }
+};
+
+export const getStaticProps = async () => {
+  const movies = await fetchMovieData();
+  return {
+    props: { movies },
+  };
+};
+
+export default function Home({ movies }) {
+  const baseImageUrl = "https://image.tmdb.org/t/p/w500";
   return (
     <>
       <Head>
@@ -14,7 +41,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={`${styles.main} ${inter.className}`}>
+      {/* <main className={`${styles.main} ${inter.className}`}>
         <div className={styles.description}>
           <p>
             Get started by editing&nbsp;
@@ -26,7 +53,7 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              By{' '}
+              By{" "}
               <Image
                 src="/vercel.svg"
                 alt="Vercel Logo"
@@ -108,7 +135,39 @@ export default function Home() {
             </p>
           </a>
         </div>
-      </main>
+      </main> */}
+
+      <div>
+        <div className={styles.mainContainer}>
+          {movies.map(
+            ({
+              id,
+              title,
+              backdrop_path,
+              release_date,
+              vote_average,
+              overview,
+            }) => {
+              const img = `${baseImageUrl}${backdrop_path}`;
+              return (
+                <div key={id} className={styles.cardContainer}>
+                  <Image
+                    alt="movie image"
+                    src={img}
+                    width={300}
+                    height={300}
+                    className={styles.image}
+                  />
+                  <h1 className={styles.title}>Title: {title}</h1>
+                  <p>Released Date:{release_date}</p>
+                  <p>Overview - {overview.slice(10, 40)}...</p>
+                  <p>Rating: {vote_average}</p>
+                </div>
+              );
+            }
+          )}
+        </div>
+      </div>
     </>
-  )
+  );
 }
